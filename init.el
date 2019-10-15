@@ -28,6 +28,7 @@
 				       '((vertical-scroll-bars . nil)
 					 (horizontal-scroll-bars . nil)))))
 
+
 (use-package use-package
   :commands use-package-autoload-keymap)
 
@@ -36,13 +37,26 @@
 (use-package magit :ensure t)
 (use-package markdown-mode :ensure t
   :mode "\\.md\\'")
+
+(use-package bison-mode :ensure t
+  :mode ("\\.l\\'" "\\.y\\'"))
+
+(use-package multiple-cursors :ensure t
+  :bind (("C->" . mc/mark-next-like-this)
+	 ("C-<" . mc/mark-previous-like-this)
+	 ("C-?" . mc/mark-all-like-this)))
+
 (use-package dracula-theme :ensure t
   :config
     (progn
       (load-theme 'dracula t t)
       (enable-theme 'dracula)))
 
-(setq modes-to-enable '(desktop-save-mode winner-mode electric-pair-mode))
+(setq auto-save-default nil
+      create-lockfiles nil
+      make-backup-files nil)
+
+(setq modes-to-enable '(desktop-save-mode winner-mode electric-pair-mode global-linum-mode))
 (setq modes-to-disable '(menu-bar-mode toggle-scroll-bar tool-bar-mode))
 
 (mapc #'(lambda (modes)
@@ -70,3 +84,17 @@
   (other-window 1)
   (switch-to-buffer (apply #'term-ansi-make-term `("terminal" ,shell-name nil ,@shell-args)))
   (term-char-mode))
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (multiple-cursors bison-mode use-package org-projectile markdown-mode magit haskell-mode dracula-theme))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
