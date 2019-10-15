@@ -5,3 +5,4 @@
 /plugins/
 
 *.desktop*
+/local-conf.el

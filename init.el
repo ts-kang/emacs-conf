@@ -65,6 +65,8 @@
       `(( 1 ,@modes-to-enable)
 	(-1 ,@modes-to-disable)))
 
+(setq local-config-file (expand-file-name "local-conf.el" user-emacs-directory))
+
 (global-set-key (kbd "<up>") 'toggle-input-method)
 
 (global-set-key (kbd "C-x y") 'yank)
@@ -84,17 +86,7 @@
   (other-window 1)
   (switch-to-buffer (apply #'term-ansi-make-term `("terminal" ,shell-name nil ,@shell-args)))
   (term-char-mode))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (multiple-cursors bison-mode use-package org-projectile markdown-mode magit haskell-mode dracula-theme))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+(unless (file-exists-p local-config-file)
+  (write-region ";; local config file\n" nil local-config-file))
+(load-file local-config-file)
