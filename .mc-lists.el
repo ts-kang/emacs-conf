@@ -10,7 +10,9 @@
 	c-electric-paren
 	c-electric-pound
 	c-electric-semi&comma
+	c-electric-star
 	electric-pair-delete-pair
+	markdown-outdent-or-delete
 	))
 
 (setq mc/cmds-to-run-once

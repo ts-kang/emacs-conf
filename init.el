@@ -7,7 +7,7 @@
 (eval-when-compile
   (require 'package)
   (package-initialize)
-  
+
   (unless (package-installed-p 'use-package)
     (package-refresh-contents)
     (package-install 'use-package)))
@@ -26,11 +26,16 @@
 	  #'(lambda (frame)
 	      (modify-frame-parameters frame
 				       '((vertical-scroll-bars . nil)
-					 (horizontal-scroll-bars . nil)))))
-
+					 (horizontal-scroll-bars . nil)))
+	      ))
 
 (use-package use-package
   :commands use-package-autoload-keymap)
+
+(use-package helm :ensure t
+  :bind (("M-x" . helm-M-x)
+	 ("C-x C-f" . helm-find-files)
+	 ("C-x C-b" . helm-buffers-list)))
 
 (use-package haskell-mode :ensure t
   :mode "\\.hs\\'")
@@ -87,6 +92,69 @@
   (switch-to-buffer (apply #'term-ansi-make-term `("terminal" ,shell-name nil ,@shell-args)))
   (term-char-mode))
 
+(defun c-lineup-arglist-tabs-only (ignored)
+  "Line up argument lists by tabs, not spaces"
+  (let* ((anchor (c-langelem-pos c-syntactic-element))
+         (column (c-langelem-2nd-pos c-syntactic-element))
+         (offset (- (1+ column) anchor))
+         (steps (floor offset c-basic-offset)))
+    (* (max steps 1)
+       c-basic-offset)))
+
+(defun set-window-margin-80-columns ()
+  (set-window-margins nil 0 (max (- (window-width) 80) 0)))
+
+(add-hook 'c-mode-hook
+	  (lambda ()
+	    (set-window-margin-80-columns)
+	    (add-hook 'window-size-change-functions 'set-window-margin-80-columns nil 'make-it-local)
+	    (add-hook 'window-configuration-change-hook 'set-window-margin-80-columns nil 'make-it-local)
+
+	    (setq c-basic-offset 8
+		  c-label-minimum-indentation 0
+		  c-offsets-alist '(
+				    (arglist-close         . c-lineup-arglist-tabs-only)
+				    (arglist-cont-nonempty .
+							   (c-lineup-gcc-asm-reg c-lineup-arglist-tabs-only))
+				    (arglist-intro         . +)
+				    (brace-list-intro      . +)
+				    (c                     . c-lineup-C-comments)
+				    (case-label            . 0)
+				    (comment-intro         . c-lineup-comment)
+				    (cpp-define-intro      . +)
+				    (cpp-macro             . -1000)
+				    (cpp-macro-cont        . +)
+				    (defun-block-intro     . +)
+				    (else-clause           . 0)
+				    (func-decl-cont        . +)
+				    (inclass               . +)
+				    (inher-cont            . c-lineup-multi-inher)
+				    (knr-argdecl-intro     . 0)
+				    (label                 . -1000)
+				    (statement             . 0)
+				    (statement-block-intro . +)
+				    (statement-case-intro  . +)
+				    (statement-cont        . +)
+				    (substatement          . +))
+		  indent-tabs-mode t
+		  show-trailing-whitespace t)
+	    (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
+
 (unless (file-exists-p local-config-file)
   (write-region ";; local config file\n" nil local-config-file))
 (load-file local-config-file)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (popup-el emacs-async use-package org-projectile multiple-cursors markdown-mode magit helm haskell-mode dracula-theme bison-mode))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
