@@ -3,15 +3,24 @@
 
 (setq mc/cmds-to-run-for-all
       '(
+	backward-sexp
 	bison-electric-close-brace
 	bison-electric-open-brace
 	bison-electric-semicolon
 	c-electric-brace
+	c-electric-colon
+	c-electric-delete-forward
 	c-electric-paren
 	c-electric-pound
 	c-electric-semi&comma
+	c-electric-slash
 	c-electric-star
+	c-indent-line-or-region
+	dabbrev-expand
+	down-list
 	electric-pair-delete-pair
+	forward-sexp
+	kill-sexp
 	markdown-outdent-or-delete
 	))
 

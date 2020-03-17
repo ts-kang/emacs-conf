@@ -1,15 +1,15 @@
-(setq package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
-			 ("melpa" . "http://melpa.milkbox.net/packages/")
-			 ("elpa" . "http://elpa.gnu.org/packages/")))
-(setq package--init-file-ensured t)
-(setq package-enable-at-startup nil)
-
 (eval-when-compile
+  (setq-default package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
+			   ("melpa" . "http://melpa.milkbox.net/packages/")
+			   ("elpa" . "http://elpa.gnu.org/packages/")))
+  (setq-default package--init-file-ensured t)
+  (setq-default package-enable-at-startup nil)
+
   (require 'package)
   (package-initialize)
+  (package-refresh-contents)
 
   (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
     (package-install 'use-package)))
 
 (setq gc-cons-threshold (* 64 1024 1024))
@@ -29,14 +29,69 @@
 					 (horizontal-scroll-bars . nil)))
 	      ))
 
+(setq use-package-verbose t)
+(setq use-package-always-ensure t)
+(require 'use-package)
+
 (use-package use-package
   :commands use-package-autoload-keymap)
+
+(use-package exec-path-from-shell :ensure t
+  :config (exec-path-from-shell-initialize))
+
+(use-package undo-tree :ensure t)
+(use-package goto-chg :ensure t)
+(use-package general :ensure t)
+
+(use-package evil :ensure t
+  :requires (undo-tree goto-chg general)
+  :config
+    (progn
+      (define-key evil-normal-state-map (kbd "M-x") 'helm-M-x)
+      (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
+      (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
+      (define-key evil-normal-state-map [escape] 'evil-mc-undo-all-cursors)
+      (define-key evil-normal-state-map (kbd "SPC f") 'helm-find-files)
+      (define-key evil-normal-state-map (kbd "SPC b") 'helm-buffers-list)
+      (define-key evil-normal-state-map (kbd "SPC s") 'save-buffer)
+      (define-key evil-normal-state-map (kbd "SPC o") "\C-xo")
+      (define-key evil-normal-state-map (kbd "SPC 0") "\C-x0")
+      (define-key evil-normal-state-map (kbd "SPC 2") "\C-x2")
+      (define-key evil-normal-state-map (kbd "SPC 3") "\C-x3")
+      (evil-mode 1)))
+
+(use-package evil-escape :ensure t
+  :requires evil
+  :init (setq-default evil-escape-key-sequence "kj")
+  :config (evil-escape-mode 1))
+
+(use-package evil-mc :ensure t
+  :requires evil
+  :config (global-evil-mc-mode 1))
+
+(use-package evil-surround :ensure t
+  :requires evil
+  :config (global-evil-surround-mode 1))
 
 (use-package helm :ensure t
   :bind (("M-x" . helm-M-x)
 	 ("C-x C-f" . helm-find-files)
 	 ("C-x C-b" . helm-buffers-list)))
 
+(use-package helm-gtags :ensure t
+  :init
+    (custom-set-variables
+     '(helm-gtags-suggested-key-mapping t)
+     '(helm-gtags-path-style 'relative)
+     '(helm-gtags-auto-update t))
+  :config
+    (progn
+      (add-hook 'c-mode-hook 'helm-gtags-mode)
+      (add-hook 'c++-mode-hook 'helm-gtags-mode)
+      (add-hook 'asm-mode-hook 'helm-gtags-mode)))
+
+(use-package typescript-mode  :ensure t
+  :mode "\\.ts\\'")
 (use-package haskell-mode :ensure t
   :mode "\\.hs\\'")
 (use-package magit :ensure t)
@@ -46,16 +101,17 @@
 (use-package bison-mode :ensure t
   :mode ("\\.l\\'" "\\.y\\'"))
 
-(use-package multiple-cursors :ensure t
+(use-package multiple-cursors :ensure t :disabled
   :bind (("C->" . mc/mark-next-like-this)
 	 ("C-<" . mc/mark-previous-like-this)
-	 ("C-?" . mc/mark-all-like-this)))
+	 ("C-?" . mc/mark-all-like-this))
+  :config (define-key mc/keymap (kbd "<return>") nil))
 
-(use-package dracula-theme :ensure t
-  :config
-    (progn
-      (load-theme 'dracula t t)
-      (enable-theme 'dracula)))
+(use-package dracula-theme :ensure t)
+;  :config
+;    (progn
+;      (load-theme 'dracula t t)
+;      (enable-theme 'dracula)))
 
 (setq auto-save-default nil
       create-lockfiles nil
@@ -143,15 +199,17 @@
 (unless (file-exists-p local-config-file)
   (write-region ";; local config file\n" nil local-config-file))
 (load-file local-config-file)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(helm-gtags-auto-update t)
+ '(helm-gtags-path-style (quote relative))
+ '(helm-gtags-suggested-key-mapping t)
  '(package-selected-packages
    (quote
-    (popup-el emacs-async use-package org-projectile multiple-cursors markdown-mode magit helm haskell-mode dracula-theme bison-mode))))
+    (general unto-tree use-package typescript-mode org-projectile multiple-cursors markdown-mode magit helm-gtags haskell-mode exec-path-from-shell evil-surround evil-mc evil-escape dracula-theme bison-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
