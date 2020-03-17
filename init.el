@@ -1,7 +1,7 @@
 (eval-when-compile
   (setq-default package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
-			   ("melpa" . "https://melpa.milkbox.net/packages/")
-			   ("elpa" . "https://elpa.gnu.org/packages/")))
+			   ("melpa" . "http://melpa.milkbox.net/packages/")
+			   ("elpa" . "http://elpa.gnu.org/packages/")))
   (setq-default package--init-file-ensured t)
   (setq-default package-enable-at-startup nil)
 
@@ -206,20 +206,4 @@
 (unless (file-exists-p local-config-file)
   (write-region ";; local config file\n" nil local-config-file))
 (load-file local-config-file)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(helm-gtags-auto-update t)
- '(helm-gtags-path-style (quote relative))
- '(helm-gtags-suggested-key-mapping t)
- '(package-selected-packages
-   (quote
-    (general unto-tree use-package typescript-mode org-projectile multiple-cursors markdown-mode magit helm-gtags haskell-mode exec-path-from-shell evil-surround evil-mc evil-escape dracula-theme bison-mode))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
