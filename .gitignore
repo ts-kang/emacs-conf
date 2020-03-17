@@ -3,6 +3,7 @@
 /elpa/
 /eshell/
 /plugins/
+/transient/
 
 *.desktop*
 /local-conf.el

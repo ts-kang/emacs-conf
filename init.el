@@ -1,7 +1,7 @@
 (eval-when-compile
   (setq-default package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
-			   ("melpa" . "http://melpa.milkbox.net/packages/")
-			   ("elpa" . "http://elpa.gnu.org/packages/")))
+			   ("melpa" . "https://melpa.milkbox.net/packages/")
+			   ("elpa" . "https://elpa.gnu.org/packages/")))
   (setq-default package--init-file-ensured t)
   (setq-default package-enable-at-startup nil)
 
@@ -44,7 +44,12 @@
 (use-package general :ensure t)
 
 (use-package evil :ensure t
-  :requires (undo-tree goto-chg general)
+  :requires (undo-tree goto-chg)
+  :init
+    (custom-set-variables
+      '(evil-emacs-state-modes nil)
+      '(evil-insert-state-modes nil)
+      '(evil-motion-state-modes nil))
   :config
     (progn
       (define-key evil-normal-state-map (kbd "M-x") 'helm-M-x)
@@ -56,8 +61,10 @@
       (define-key evil-normal-state-map (kbd "SPC s") 'save-buffer)
       (define-key evil-normal-state-map (kbd "SPC o") "\C-xo")
       (define-key evil-normal-state-map (kbd "SPC 0") "\C-x0")
+      (define-key evil-normal-state-map (kbd "SPC 1") "\C-x1")
       (define-key evil-normal-state-map (kbd "SPC 2") "\C-x2")
       (define-key evil-normal-state-map (kbd "SPC 3") "\C-x3")
+      (define-key evil-normal-state-map (kbd "SPC 5") "\C-x5")
       (evil-mode 1)))
 
 (use-package evil-escape :ensure t
