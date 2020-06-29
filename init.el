@@ -41,7 +41,31 @@
 
 (use-package undo-tree :ensure t)
 (use-package goto-chg :ensure t)
-(use-package general :ensure t)
+(use-package general :ensure t
+  :config
+  (progn
+    (general-define-key
+     :states 'normal
+     "\M-x" 'helm-M-x
+     "j" 'evil-next-visual-line
+     "k" 'evil-previous-visual-line
+     [escape] 'evil-mc-undo-all-cursors)
+    (general-override-mode)
+    (general-define-key
+      :states 'normal
+      :keymaps 'override
+      :prefix "SPC"
+      "f" 'helm-find-files
+      "b" 'helm-buffers-list
+      "s" 'save-buffer
+      "k" 'kill-buffer
+      "v" 'find-alternate-file
+      "o" "\C-xo"
+      "0" "\C-x0"
+      "1" "\C-x1"
+      "2" "\C-x2"
+      "3" "\C-x3"
+      "5" "\C-x5")))
 
 (use-package evil :ensure t
   :requires (undo-tree goto-chg)
@@ -51,21 +75,7 @@
       '(evil-insert-state-modes nil)
       '(evil-motion-state-modes nil))
   :config
-    (progn
-      (define-key evil-normal-state-map (kbd "M-x") 'helm-M-x)
-      (define-key evil-normal-state-map (kbd "j") 'evil-next-visual-line)
-      (define-key evil-normal-state-map (kbd "k") 'evil-previous-visual-line)
-      (define-key evil-normal-state-map [escape] 'evil-mc-undo-all-cursors)
-      (define-key evil-normal-state-map (kbd "SPC f") 'helm-find-files)
-      (define-key evil-normal-state-map (kbd "SPC b") 'helm-buffers-list)
-      (define-key evil-normal-state-map (kbd "SPC s") 'save-buffer)
-      (define-key evil-normal-state-map (kbd "SPC o") "\C-xo")
-      (define-key evil-normal-state-map (kbd "SPC 0") "\C-x0")
-      (define-key evil-normal-state-map (kbd "SPC 1") "\C-x1")
-      (define-key evil-normal-state-map (kbd "SPC 2") "\C-x2")
-      (define-key evil-normal-state-map (kbd "SPC 3") "\C-x3")
-      (define-key evil-normal-state-map (kbd "SPC 5") "\C-x5")
-      (evil-mode 1)))
+    (evil-mode 1))
 
 (use-package evil-escape :ensure t
   :requires evil
@@ -97,6 +107,8 @@
       (add-hook 'c++-mode-hook 'helm-gtags-mode)
       (add-hook 'asm-mode-hook 'helm-gtags-mode)))
 
+(use-package rust-mode  :ensure t
+  :mode "\\.rs\\'")
 (use-package typescript-mode  :ensure t
   :mode "\\.ts\\'")
 (use-package haskell-mode :ensure t
@@ -135,7 +147,7 @@
 
 (setq local-config-file (expand-file-name "local-conf.el" user-emacs-directory))
 
-(global-set-key (kbd "<up>") 'toggle-input-method)
+;(global-set-key (kbd "<up>") 'toggle-input-method)
 
 (global-set-key (kbd "C-x y") 'yank)
 
@@ -206,4 +218,23 @@
 (unless (file-exists-p local-config-file)
   (write-region ";; local config file\n" nil local-config-file))
 (load-file local-config-file)
-
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(evil-emacs-state-modes nil)
+ '(evil-insert-state-modes nil)
+ '(evil-motion-state-modes nil)
+ '(helm-gtags-auto-update t)
+ '(helm-gtags-path-style (quote relative))
+ '(helm-gtags-suggested-key-mapping t)
+ '(package-selected-packages
+   (quote
+    (rust-mode use-package typescript-mode org-projectile multiple-cursors markdown-mode magit helm-gtags haskell-mode general exec-path-from-shell evil-surround evil-mc evil-escape dracula-theme bison-mode))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
