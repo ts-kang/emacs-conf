@@ -4,6 +4,8 @@
 /eshell/
 /plugins/
 /transient/
+/url/
+/tramp
 
 *.desktop*
 /local-conf.el

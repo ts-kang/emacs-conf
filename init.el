@@ -1,6 +1,6 @@
 (eval-when-compile
   (setq-default package-archives '(("melpa-stable" . "https://stable.melpa.org/packages/")
-			   ("melpa" . "http://melpa.milkbox.net/packages/")
+			   ("melpa" . "http://melpa.org/packages/")
 			   ("elpa" . "http://elpa.gnu.org/packages/")))
   (setq-default package--init-file-ensured t)
   (setq-default package-enable-at-startup nil)
@@ -11,6 +11,9 @@
 
   (unless (package-installed-p 'use-package)
     (package-install 'use-package)))
+
+(setq server-socket-dir "/tmp/emacs-server/")
+(server-start)
 
 (setq gc-cons-threshold (* 64 1024 1024))
 
@@ -39,6 +42,24 @@
 (use-package exec-path-from-shell :ensure t
   :config (exec-path-from-shell-initialize))
 
+(use-package helm :ensure t
+  :bind (("M-x" . helm-M-x)
+	 ("C-x C-f" . helm-find-files)
+	 ("C-x C-b" . helm-buffers-list)))
+
+(use-package helm-gtags :ensure t
+  :requires helm
+  :init
+    (custom-set-variables
+     '(helm-gtags-suggested-key-mapping t)
+     '(helm-gtags-path-style 'relative)
+     '(helm-gtags-auto-update t))
+  :config
+    (progn
+      (add-hook 'c-mode-hook 'helm-gtags-mode)
+      (add-hook 'c++-mode-hook 'helm-gtags-mode)
+      (add-hook 'asm-mode-hook 'helm-gtags-mode)))
+
 (use-package undo-tree :ensure t)
 (use-package goto-chg :ensure t)
 (use-package general :ensure t
@@ -55,8 +76,12 @@
       :states 'normal
       :keymaps 'override
       :prefix "SPC"
+      "ei" 'open-init-script
       "f" 'helm-find-files
-      "b" 'helm-buffers-list
+      "bb" 'helm-buffers-list
+      "b SPC" "\C-xb<return>"
+      "bp" 'previous-buffer
+      "bn" 'next-buffer
       "s" 'save-buffer
       "k" 'kill-buffer
       "v" 'find-alternate-file
@@ -65,10 +90,23 @@
       "1" "\C-x1"
       "2" "\C-x2"
       "3" "\C-x3"
-      "5" "\C-x5")))
+      "4b" "\C-x4b"
+      "5b" "\C-x5b"
+      "50" "\C-x50"
+      "51" "\C-x51"
+      "52" "\C-x52"
+      "53" "\C-x53")))
+
+(setq-default init-script "~/.emacs.d/init.el")
+(if load-file-name
+    (setq init-script load-file-name))
+
+(defun open-init-script ()
+  (interactive)
+  (find-file-existing init-script))
 
 (use-package evil :ensure t
-  :requires (undo-tree goto-chg)
+  :requires undo-tree goto-chg
   :init
     (custom-set-variables
       '(evil-emacs-state-modes nil)
@@ -90,35 +128,19 @@
   :requires evil
   :config (global-evil-surround-mode 1))
 
-(use-package helm :ensure t
-  :bind (("M-x" . helm-M-x)
-	 ("C-x C-f" . helm-find-files)
-	 ("C-x C-b" . helm-buffers-list)))
-
-(use-package helm-gtags :ensure t
-  :init
-    (custom-set-variables
-     '(helm-gtags-suggested-key-mapping t)
-     '(helm-gtags-path-style 'relative)
-     '(helm-gtags-auto-update t))
-  :config
-    (progn
-      (add-hook 'c-mode-hook 'helm-gtags-mode)
-      (add-hook 'c++-mode-hook 'helm-gtags-mode)
-      (add-hook 'asm-mode-hook 'helm-gtags-mode)))
-
-(use-package rust-mode  :ensure t
+(use-package rust-mode :ensure t
   :mode "\\.rs\\'")
-(use-package typescript-mode  :ensure t
+(use-package typescript-mode :ensure t
   :mode "\\.ts\\'")
 (use-package haskell-mode :ensure t
   :mode "\\.hs\\'")
 (use-package magit :ensure t)
 (use-package markdown-mode :ensure t
   :mode "\\.md\\'")
-
 (use-package bison-mode :ensure t
-  :mode ("\\.l\\'" "\\.y\\'"))
+  :mode "\\.l\\'" "\\.y\\'")
+(use-package ahk-mode :ensure t
+  :mode "\\.ahk\\'")
 
 (use-package multiple-cursors :ensure t :disabled
   :bind (("C->" . mc/mark-next-like-this)
@@ -127,23 +149,24 @@
   :config (define-key mc/keymap (kbd "<return>") nil))
 
 (use-package dracula-theme :ensure t)
-;  :config
-;    (progn
-;      (load-theme 'dracula t t)
-;      (enable-theme 'dracula)))
+  :config
+    (progn
+      (load-theme 'dracula t t)
+      (enable-theme 'leuven)))
 
 (setq auto-save-default nil
       create-lockfiles nil
       make-backup-files nil)
 
-(setq modes-to-enable '(desktop-save-mode winner-mode electric-pair-mode global-linum-mode))
-(setq modes-to-disable '(menu-bar-mode toggle-scroll-bar tool-bar-mode))
+(desktop-save-mode 1)
+(winner-mode 1)
+(electric-pair-mode 1)
+(global-linum-mode 1)
+(column-number-mode 1)
 
-(mapc #'(lambda (modes)
-	  (mapc #'(lambda (mode) (funcall mode (car modes)))
-		(cdr modes)))
-      `(( 1 ,@modes-to-enable)
-	(-1 ,@modes-to-disable)))
+(menu-bar-mode -1)
+(toggle-scroll-bar -1)
+(tool-bar-mode -1)
 
 (setq local-config-file (expand-file-name "local-conf.el" user-emacs-directory))
 
@@ -176,14 +199,11 @@
     (* (max steps 1)
        c-basic-offset)))
 
-(defun set-window-margin-80-columns ()
-  (set-window-margins nil 0 (max (- (window-width) 80) 0)))
-
 (add-hook 'c-mode-hook
 	  (lambda ()
-	    (set-window-margin-80-columns)
-	    (add-hook 'window-size-change-functions 'set-window-margin-80-columns nil 'make-it-local)
-	    (add-hook 'window-configuration-change-hook 'set-window-margin-80-columns nil 'make-it-local)
+	    (add-hook 'window-size-change-functions nil 'make-it-local)
+	    ;(add-hook 'window-configuration-change-hook nil 'make-it-local)
+	      ; occurs "Symbol's function definition is void: nil"
 
 	    (setq c-basic-offset 8
 		  c-label-minimum-indentation 0
@@ -231,7 +251,7 @@
  '(helm-gtags-suggested-key-mapping t)
  '(package-selected-packages
    (quote
-    (rust-mode use-package typescript-mode org-projectile multiple-cursors markdown-mode magit helm-gtags haskell-mode general exec-path-from-shell evil-surround evil-mc evil-escape dracula-theme bison-mode))))
+    (ahk-mode use-package typescript-mode rust-mode org-projectile multiple-cursors markdown-mode magit helm-gtags haskell-mode general exec-path-from-shell evil-surround evil-mc evil-escape dracula-theme bison-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
