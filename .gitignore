@@ -9,3 +9,6 @@
 
 *.desktop*
 /local-conf.el
+
+node_modules/
+yarn.lock
