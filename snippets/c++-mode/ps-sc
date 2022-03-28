@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ps-sc
+# key: sc
+# --
+scanf("${1:%d}", $0);

@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: ps-template
+# key: N
+# --
+int ${1:N};
+scanf("%d", $1);
+while ($1 --> 0) {
+	$0
+}

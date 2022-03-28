@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: ps-pr
+# key: pr
+# --
+printf("${1:%d\n}", $0);

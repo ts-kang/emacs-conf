@@ -42,6 +42,22 @@
 (use-package exec-path-from-shell :ensure t
   :config (exec-path-from-shell-initialize))
 
+(setq-default yas-triggers-in-field 1)
+(use-package yasnippet-snippets :ensure t)
+(use-package yasnippet :ensure t
+  :config (progn
+            (yas-global-mode 1)
+            (define-key yas-minor-mode-map [(tab)] nil)
+            (define-key yas-minor-mode-map (kbd "<tab>") nil)
+            (define-key yas-minor-mode-map (kbd "TAB") nil)
+            (define-key yas-minor-mode-map (kbd "C-.") yas-maybe-expand)
+            (define-key yas-keymap [(tab)]       nil)
+            (define-key yas-keymap (kbd "TAB")   nil)
+            (define-key yas-keymap [(shift tab)] nil)
+            (define-key yas-keymap [backtab]     nil)
+            (define-key yas-keymap (kbd "C-.") 'yas-next-field-or-maybe-expand)
+            (define-key yas-keymap (kbd "C-,") 'yas-prev)))
+
 (use-package helm :ensure t
   :bind (("M-x" . helm-M-x)
 	 ("C-x C-f" . helm-find-files)
@@ -70,22 +86,34 @@
      "\M-x" 'helm-M-x
      "j" 'evil-next-visual-line
      "k" 'evil-previous-visual-line
-     [escape] 'evil-mc-undo-all-cursors)
+     "<tab>" 'evil-mc-undo-all-cursors)
+    (general-define-key
+     :states 'visual
+     "<tab>" "<escape>")
+    (general-define-key
+     :states 'insert
+     "<tab>" "<escape>")
     (general-override-mode)
     (general-define-key
       :states 'normal
       :keymaps 'override
       :prefix "SPC"
+      "yv" 'yas-visit-snippet-file
       "ei" 'open-init-script
       "f" 'helm-find-files
       "bb" 'helm-buffers-list
-      "b SPC" "\C-xb<return>"
+      "b SPC" "\C-xb"
       "bp" 'previous-buffer
       "bn" 'next-buffer
       "s" 'save-buffer
       "k" 'kill-buffer
       "v" 'find-alternate-file
       "o" "\C-xo"
+      "-" "\C-x-"
+      "+" "\C-x+"
+      "^" "\C-x^"
+      "{" "\C-x{"
+      "}" "\C-x}"
       "0" "\C-x0"
       "1" "\C-x1"
       "2" "\C-x2"
@@ -117,7 +145,7 @@
 
 (use-package evil-escape :ensure t
   :requires evil
-  :init (setq-default evil-escape-key-sequence "kj")
+  :init (global-set-key (kbd "<tab>") 'evil-escape)
   :config (evil-escape-mode 1))
 
 (use-package evil-mc :ensure t
@@ -139,8 +167,16 @@
   :mode "\\.md\\'")
 (use-package bison-mode :ensure t
   :mode "\\.l\\'" "\\.y\\'")
+(use-package go-mode :ensure t
+  :mode "\\.go\\'")
 (use-package ahk-mode :ensure t
   :mode "\\.ahk\\'")
+(use-package masm-mode :ensure t
+  :mode "\\.asm\\'")
+(use-package arduino-mode :ensure t
+  :mode "\\.ino\\'")
+(use-package lua-mode :ensure t
+  :mode "\\.lua\\'")
 
 (use-package multiple-cursors :ensure t :disabled
   :bind (("C->" . mc/mark-next-like-this)
@@ -148,10 +184,14 @@
 	 ("C-?" . mc/mark-all-like-this))
   :config (define-key mc/keymap (kbd "<return>") nil))
 
-(use-package dracula-theme :ensure t)
+(use-package emojify :ensure t
+  :hook (after-init . global-emojify-mode))
+
+(use-package dracula-theme :ensure t
   :config
     (progn
       (load-theme 'dracula t t)
+      (load-theme 'leuven)
       (enable-theme 'leuven)))
 
 (setq auto-save-default nil
@@ -167,6 +207,10 @@
 (menu-bar-mode -1)
 (toggle-scroll-bar -1)
 (tool-bar-mode -1)
+
+(setq-default show-trailing-whitespace t)
+
+(setq-default indent-tabs-mode nil)
 
 (setq local-config-file (expand-file-name "local-conf.el" user-emacs-directory))
 
@@ -199,41 +243,43 @@
     (* (max steps 1)
        c-basic-offset)))
 
-(add-hook 'c-mode-hook
-	  (lambda ()
-	    (add-hook 'window-size-change-functions nil 'make-it-local)
-	    ;(add-hook 'window-configuration-change-hook nil 'make-it-local)
-	      ; occurs "Symbol's function definition is void: nil"
+(defun c-hook ()
+  (add-hook 'window-size-change-functions nil 'make-it-local)
+  ;(add-hook 'window-configuration-change-hook nil 'make-it-local)
+      ; occurs "Symbol's function definition is void: nil"
 
-	    (setq c-basic-offset 8
-		  c-label-minimum-indentation 0
-		  c-offsets-alist '(
-				    (arglist-close         . c-lineup-arglist-tabs-only)
-				    (arglist-cont-nonempty .
-							   (c-lineup-gcc-asm-reg c-lineup-arglist-tabs-only))
-				    (arglist-intro         . +)
-				    (brace-list-intro      . +)
-				    (c                     . c-lineup-C-comments)
-				    (case-label            . 0)
-				    (comment-intro         . c-lineup-comment)
-				    (cpp-define-intro      . +)
-				    (cpp-macro             . -1000)
-				    (cpp-macro-cont        . +)
-				    (defun-block-intro     . +)
-				    (else-clause           . 0)
-				    (func-decl-cont        . +)
-				    (inclass               . +)
-				    (inher-cont            . c-lineup-multi-inher)
-				    (knr-argdecl-intro     . 0)
-				    (label                 . -1000)
-				    (statement             . 0)
-				    (statement-block-intro . +)
-				    (statement-case-intro  . +)
-				    (statement-cont        . +)
-				    (substatement          . +))
-		  indent-tabs-mode t
-		  show-trailing-whitespace t)
-	    (add-to-list 'write-file-functions 'delete-trailing-whitespace)))
+  (setq c-basic-offset 8
+          c-label-minimum-indentation 0
+          c-offsets-alist '(
+                          (arglist-close         . c-lineup-arglist-tabs-only)
+                          (arglist-cont-nonempty .
+                                                  (c-lineup-gcc-asm-reg c-lineup-arglist-tabs-only))
+                          (arglist-intro         . +)
+                          (brace-list-intro      . +)
+                          (c                     . c-lineup-C-comments)
+                          (case-label            . 0)
+                          (comment-intro         . c-lineup-comment)
+                          (cpp-define-intro      . +)
+                          (cpp-macro             . -1000)
+                          (cpp-macro-cont        . +)
+                          (defun-block-intro     . +)
+                          (else-clause           . 0)
+                          (func-decl-cont        . +)
+                          (inclass               . +)
+                          (inher-cont            . c-lineup-multi-inher)
+                          (knr-argdecl-intro     . 0)
+                          (label                 . -1000)
+                          (statement             . 0)
+                          (statement-block-intro . +)
+                          (statement-case-intro  . +)
+                          (statement-cont        . +)
+                          (substatement          . +))
+          indent-tabs-mode t
+          show-trailing-whitespace t)
+  (add-to-list 'write-file-functions 'delete-trailing-whitespace))
+
+(add-hook 'c-mode-hook 'c-hook)
+(add-hook 'c++-mode-hook 'c-hook)
 
 (unless (file-exists-p local-config-file)
   (write-region ";; local config file\n" nil local-config-file))
@@ -243,6 +289,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   (quote
+    ("b46ee2c193e350d07529fcd50948ca54ad3b38446dcbd9b28d0378792db5c088" default)))
  '(evil-emacs-state-modes nil)
  '(evil-insert-state-modes nil)
  '(evil-motion-state-modes nil)
@@ -251,7 +300,7 @@
  '(helm-gtags-suggested-key-mapping t)
  '(package-selected-packages
    (quote
-    (ahk-mode use-package typescript-mode rust-mode org-projectile multiple-cursors markdown-mode magit helm-gtags haskell-mode general exec-path-from-shell evil-surround evil-mc evil-escape dracula-theme bison-mode))))
+    (yasnippet-snippets go-mode ahk-mode use-package typescript-mode rust-mode org-projectile multiple-cursors markdown-mode magit helm-gtags haskell-mode general exec-path-from-shell evil-surround evil-mc evil-escape dracula-theme bison-mode))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
